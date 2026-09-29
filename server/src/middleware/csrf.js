@@ -8,7 +8,7 @@ export const setCsrfToken = (req, res, next) => {
     res.cookie('csrf-token', token, {
       httpOnly: false, // Needs to be readable by JS to attach to headers
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'Strict',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
     });
   }
   next();
