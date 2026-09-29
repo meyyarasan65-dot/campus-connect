@@ -7,7 +7,7 @@ export const getAllClubs = async (query = {}) => {
 
 export const getClubById = async (clubId) => {
   const club = await Club.findById(clubId)
-    .populate('admins', 'firstName lastName avatarUrl')
+    .populate('admins', 'firstName lastName email avatarUrl')
     .populate('members', 'firstName lastName avatarUrl');
   if (!club) throw new ApiError(404, 'Club not found');
   return club;

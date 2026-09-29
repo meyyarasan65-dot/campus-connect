@@ -1,15 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { getClubById, joinClub, leaveClub } from '../../api/clubs.api';
-import { getAnnouncements } from '../../api/content.api';
+import { getAnnouncements, createAnnouncement } from '../../api/content.api';
 import { useAuthStore } from '../../store/authStore';
-import { ArrowLeft, Users, ShieldCheck, Mail, LogOut, UserPlus, Megaphone, Clock } from 'lucide-react';
-import { ROLES } from '../../constants/roles';
+import { ArrowLeft, Users, ShieldCheck, Mail, LogOut, UserPlus, Megaphone, Clock, Plus, X } from 'lucide-react';
+import { ROLES, PERMISSIONS } from '../../constants/roles';
+import { useState } from 'react';
 
 export const ClubDetails = () => {
   const { clubId } = useParams();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
+  const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [announcementForm, setAnnouncementForm] = useState({ title: '', content: '', priority: 'Normal' });
 
   const { data: club, isLoading } = useQuery({
     queryKey: ['club', clubId],
@@ -31,6 +34,20 @@ export const ClubDetails = () => {
     mutationFn: leaveClub,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['club', clubId] }),
   });
+
+  const createAnnouncementMutation = useMutation({
+    mutationFn: createAnnouncement,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements', { clubId }] });
+      setIsAnnouncementModalOpen(false);
+      setAnnouncementForm({ title: '', content: '', priority: 'Normal' });
+    },
+  });
+
+  const handleCreateAnnouncement = (e) => {
+    e.preventDefault();
+    createAnnouncementMutation.mutate({ ...announcementForm, clubId });
+  };
 
   if (isLoading) {
     return <div className="min-h-screen bg-slate-50 p-8 text-center text-slate-500">Loading club details...</div>;
@@ -163,10 +180,20 @@ export const ClubDetails = () => {
               </div>
               {/* Announcements Section */}
               <div className="md:col-span-2 mt-4">
-                <h3 className="text-lg font-bold text-slate-900 flex items-center mb-4">
-                  <Megaphone className="w-5 h-5 mr-2 text-brand-500" />
-                  Club Announcements
-                </h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center">
+                    <Megaphone className="w-5 h-5 mr-2 text-brand-500" />
+                    Club Announcements
+                  </h3>
+                  {isAdmin && (
+                    <button 
+                      onClick={() => setIsAnnouncementModalOpen(true)}
+                      className="flex items-center text-sm font-medium bg-brand-50 text-brand-700 px-3 py-1.5 rounded-lg hover:bg-brand-100 transition-colors"
+                    >
+                      <Plus className="w-4 h-4 mr-1" /> New Post
+                    </button>
+                  )}
+                </div>
                 <div className="space-y-4">
                   {announcements && announcements.length > 0 ? (
                     announcements.map(announcement => (
@@ -195,6 +222,40 @@ export const ClubDetails = () => {
           </div>
         </div>
       </div>
+
+      {isAnnouncementModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-lg p-6 shadow-xl my-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold flex items-center">
+                <Megaphone className="w-5 h-5 mr-2 text-brand-500" />
+                Post Announcement
+              </h2>
+              <button onClick={() => setIsAnnouncementModalOpen(false)}><X className="w-5 h-5 text-slate-400 hover:text-slate-600" /></button>
+            </div>
+            <form onSubmit={handleCreateAnnouncement} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Title</label>
+                <input required minLength={5} type="text" value={announcementForm.title} onChange={e => setAnnouncementForm({...announcementForm, title: e.target.value})} className="w-full border rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Priority</label>
+                <select value={announcementForm.priority} onChange={e => setAnnouncementForm({...announcementForm, priority: e.target.value})} className="w-full border rounded-lg px-3 py-2">
+                  <option value="Normal">Normal</option>
+                  <option value="High">High</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Content</label>
+                <textarea required minLength={10} value={announcementForm.content} onChange={e => setAnnouncementForm({...announcementForm, content: e.target.value})} className="w-full border rounded-lg px-3 py-2" rows="4"></textarea>
+              </div>
+              <button type="submit" disabled={createAnnouncementMutation.isPending} className="w-full py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 mt-2">
+                {createAnnouncementMutation.isPending ? 'Posting...' : 'Post Announcement'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
