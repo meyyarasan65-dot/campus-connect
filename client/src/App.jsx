@@ -10,6 +10,7 @@ import { useAuthStore } from './store/authStore';
 
 import { StudentProfile } from './pages/profile/StudentProfile';
 import { ClubList } from './pages/clubs/ClubList';
+import { ClubDetails } from './pages/clubs/ClubDetails';
 import { AnnouncementsFeed } from './pages/content/AnnouncementsFeed';
 import { EventsDiscovery } from './pages/content/EventsDiscovery';
 import { ForumList } from './pages/forums/ForumList';
@@ -145,6 +146,7 @@ function App() {
           <Route path="/" element={<Layout><Dashboard /></Layout>} />
           <Route path="/profile" element={<Layout><StudentProfile /></Layout>} />
           <Route path="/clubs" element={<Layout><ClubList /></Layout>} />
+          <Route path="/clubs/:clubId" element={<Layout><ClubDetails /></Layout>} />
           <Route path="/announcements" element={<Layout><AnnouncementsFeed /></Layout>} />
           <Route path="/events" element={<Layout><EventsDiscovery /></Layout>} />
           <Route path="/forums" element={<Layout><ForumList /></Layout>} />
