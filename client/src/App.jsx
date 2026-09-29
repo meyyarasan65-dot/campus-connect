@@ -5,6 +5,7 @@ import { Register } from './pages/auth/Register';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import { RouteGuard } from './routes/RouteGuard';
 import { getMe, getCsrfToken } from './api/auth.api';
+import { setCsrfTokenMemory } from './api/client';
 import { useAuthStore } from './store/authStore';
 
 import { StudentProfile } from './pages/profile/StudentProfile';
@@ -113,7 +114,9 @@ function App() {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        await getCsrfToken(); // fetch initial CSRF token
+        const { csrfToken } = await getCsrfToken(); // fetch initial CSRF token
+        if (csrfToken) setCsrfTokenMemory(csrfToken);
+        
         const { user } = await getMe();
         // Access token is usually grabbed by silent refresh if missing, but getMe forces a check.
         // For simplicity in init, if getMe succeeds, we assume we're authenticated.

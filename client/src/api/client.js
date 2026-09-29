@@ -9,6 +9,11 @@ export const apiClient = axios.create({
 let isRefreshing = false;
 let failedQueue = [];
 
+let csrfTokenMemory = null;
+export const setCsrfTokenMemory = (token) => {
+  csrfTokenMemory = token;
+};
+
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
     if (error) {
@@ -30,6 +35,8 @@ apiClient.interceptors.request.use((config) => {
   const csrfCookie = document.cookie.split('; ').find(row => row.startsWith('csrf-token='));
   if (csrfCookie) {
     config.headers['x-csrf-token'] = csrfCookie.split('=')[1];
+  } else if (csrfTokenMemory) {
+    config.headers['x-csrf-token'] = csrfTokenMemory;
   }
   
   return config;

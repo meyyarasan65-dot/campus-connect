@@ -51,7 +51,7 @@ app.use('/api/points', pointsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 
 app.get('/api/csrf-token', (req, res) => {
-  res.status(200).json({ success: true, data: { csrfToken: req.cookies['csrf-token'] } });
+  res.status(200).json({ success: true, data: { csrfToken: req.csrfToken } });
 });
 
 app.get('/api/health', (req, res) => {

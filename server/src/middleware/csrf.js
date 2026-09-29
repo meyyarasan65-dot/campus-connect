@@ -10,6 +10,9 @@ export const setCsrfToken = (req, res, next) => {
       secure: process.env.NODE_ENV === 'production',
       sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
     });
+    req.csrfToken = token;
+  } else {
+    req.csrfToken = req.cookies['csrf-token'];
   }
   next();
 };
