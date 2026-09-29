@@ -11,6 +11,7 @@ export const getAllAnnouncements = async (searchQuery, filters = {}) => {
   if (filters.priority) query.priority = filters.priority;
   if (filters.department) query.targetDepartments = { $in: [filters.department] };
   if (filters.batch) query.targetBatches = { $in: [Number(filters.batch)] };
+  if (filters.clubId) query.club = filters.clubId;
 
   return await Announcement.find(query)
     .sort(searchQuery ? { score: { $meta: 'textScore' } } : { isPinned: -1, createdAt: -1 })

@@ -1,8 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, Link } from 'react-router-dom';
 import { getClubById, joinClub, leaveClub } from '../../api/clubs.api';
+import { getAnnouncements } from '../../api/content.api';
 import { useAuthStore } from '../../store/authStore';
-import { ArrowLeft, Users, ShieldCheck, Mail, Calendar, LogOut, UserPlus } from 'lucide-react';
+import { ArrowLeft, Users, ShieldCheck, Mail, LogOut, UserPlus, Megaphone, Clock } from 'lucide-react';
 import { ROLES } from '../../constants/roles';
 
 export const ClubDetails = () => {
@@ -13,6 +14,12 @@ export const ClubDetails = () => {
   const { data: club, isLoading } = useQuery({
     queryKey: ['club', clubId],
     queryFn: () => getClubById(clubId),
+  });
+
+  const { data: announcements } = useQuery({
+    queryKey: ['announcements', { clubId }],
+    queryFn: () => getAnnouncements({ clubId }),
+    enabled: !!clubId,
   });
 
   const joinMutation = useMutation({
@@ -34,7 +41,7 @@ export const ClubDetails = () => {
   }
 
   // Check if current user is member or admin
-  const isMember = club.members?.some(m => m.user._id === user._id);
+  const isMember = club.members?.some(m => m._id === user._id);
   const isAdmin = club.admins?.some(a => a._id === user._id);
   const canJoin = !isMember && !isAdmin && user.role === ROLES.STUDENT;
   const canLeave = isMember && !isAdmin;
@@ -153,6 +160,36 @@ export const ClubDetails = () => {
                     </div>
                   </div>
                 )}
+              </div>
+              {/* Announcements Section */}
+              <div className="md:col-span-2 mt-4">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center mb-4">
+                  <Megaphone className="w-5 h-5 mr-2 text-brand-500" />
+                  Club Announcements
+                </h3>
+                <div className="space-y-4">
+                  {announcements && announcements.length > 0 ? (
+                    announcements.map(announcement => (
+                      <div key={announcement._id} className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm">
+                        <div className="flex justify-between items-start mb-2">
+                          <h4 className="font-bold text-slate-900 text-lg">{announcement.title}</h4>
+                          {announcement.priority === 'High' && (
+                            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-bold rounded">High Priority</span>
+                          )}
+                        </div>
+                        <p className="text-slate-600 mb-4">{announcement.content}</p>
+                        <div className="flex items-center text-xs font-medium text-slate-400">
+                          <Clock className="w-3.5 h-3.5 mr-1" />
+                          {new Date(announcement.createdAt).toLocaleDateString()} by {announcement.author?.firstName} {announcement.author?.lastName}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-100 text-center text-slate-500 text-sm">
+                      No announcements posted for this club yet.
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>

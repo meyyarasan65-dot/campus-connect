@@ -4,8 +4,8 @@ import { StudentProfile } from '../../models/StudentProfile.js';
 import { ApiError } from '../../utils/ApiError.js';
 
 export const getAnnouncements = async (req, res) => {
-  const { q, priority, department, batch } = req.query;
-  const announcements = await contentService.getAllAnnouncements(q, { priority, department, batch });
+  const { q, priority, department, batch, clubId } = req.query;
+  const announcements = await contentService.getAllAnnouncements(q, { priority, department, batch, clubId });
   res.status(200).json({ success: true, data: announcements });
 };
 
