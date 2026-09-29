@@ -18,6 +18,7 @@ import pointsRoutes from './modules/points/points.routes.js';
 import analyticsRoutes from './modules/analytics/analytics.routes.js';
 
 const app = express();
+app.set('trust proxy', 1);
 
 // Global Middlewares
 app.use(helmet());
