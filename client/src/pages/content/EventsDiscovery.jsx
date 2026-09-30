@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getEvents, rsvpEvent, createEvent } from '../../api/events.api';
+import { getEvents, rsvpEvent, createEvent, updateEventStatus } from '../../api/events.api';
 import { useAuthStore } from '../../store/authStore';
 import { Calendar as CalendarIcon, MapPin, Users, PlusCircle, CheckCircle, X } from 'lucide-react';
 import { format } from 'date-fns';
@@ -47,6 +47,19 @@ export const EventsDiscovery = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['events'] });
     },
+    onError: (err) => {
+      alert(err.response?.data?.error?.message || 'Failed to RSVP to event.');
+    }
+  });
+
+  const statusMutation = useMutation({
+    mutationFn: ({ eventId, status }) => updateEventStatus(eventId, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+    },
+    onError: (err) => {
+      alert(err.response?.data?.error?.message || 'Failed to update event status.');
+    }
   });
 
   if (isLoading) {
@@ -115,12 +128,13 @@ export const EventsDiscovery = () => {
                     {event.description}
                   </p>
                   <button 
-                    onClick={() => !isGoing && !isFull && rsvpMutation.mutate(event._id)}
-                    disabled={isGoing || isFull || rsvpMutation.isPending}
+                    type="button"
+                    onClick={() => !isGoing && !isFull && event.status === 'approved' && rsvpMutation.mutate(event._id)}
+                    disabled={isGoing || isFull || event.status !== 'approved' || rsvpMutation.isPending}
                     className={`w-full py-2.5 rounded-lg text-sm font-semibold flex items-center justify-center transition-all ${
                       isGoing 
                         ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 cursor-default'
-                        : isFull
+                        : isFull || event.status !== 'approved'
                         ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
                         : 'bg-slate-900 text-white hover:bg-slate-800 shadow-md hover:shadow-lg'
                     }`}
@@ -129,10 +143,33 @@ export const EventsDiscovery = () => {
                       <><CheckCircle className="w-4 h-4 mr-2" /> You're Going</>
                     ) : isFull ? (
                       'Event Full'
+                    ) : event.status !== 'approved' ? (
+                      'Pending Approval'
                     ) : (
                       <><PlusCircle className="w-4 h-4 mr-2" /> RSVP Now</>
                     )}
                   </button>
+
+                  <Can permission={[PERMISSIONS.EVENTS_APPROVE]}>
+                    {event.status === 'pending' && (
+                      <div className="flex space-x-2 mt-4">
+                        <button 
+                          onClick={() => statusMutation.mutate({ eventId: event._id, status: 'approved' })}
+                          disabled={statusMutation.isPending}
+                          className="flex-1 py-2 bg-emerald-600 text-white rounded-lg text-sm font-semibold hover:bg-emerald-700 transition-colors"
+                        >
+                          Approve
+                        </button>
+                        <button 
+                          onClick={() => statusMutation.mutate({ eventId: event._id, status: 'rejected' })}
+                          disabled={statusMutation.isPending}
+                          className="flex-1 py-2 bg-rose-600 text-white rounded-lg text-sm font-semibold hover:bg-rose-700 transition-colors"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
+                  </Can>
                 </div>
               </div>
             );

@@ -14,3 +14,8 @@ export const rsvpEvent = async (eventId) => {
   const { data } = await apiClient.post(`/events/${eventId}/rsvp`);
   return data.data;
 };
+
+export const updateEventStatus = async (eventId, status) => {
+  const { data } = await apiClient.put(`/events/${eventId}/status`, { status });
+  return data.data;
+};

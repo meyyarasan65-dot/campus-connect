@@ -24,3 +24,8 @@ export const leaveClub = async (clubId) => {
   const { data } = await apiClient.post(`/clubs/${clubId}/leave`);
   return data.data;
 };
+
+export const deleteClub = async (clubId) => {
+  const { data } = await apiClient.delete(`/clubs/${clubId}`);
+  return data.data;
+};

@@ -97,7 +97,8 @@ export const rsvpEvent = async (eventId, user) => {
     throw new ApiError(400, 'Event is full');
   }
 
-  if (!event.rsvps.includes(user._id)) {
+  const isRSVPed = event.rsvps.some(id => id.toString() === user._id.toString());
+  if (!isRSVPed) {
     event.rsvps.push(user._id);
     await event.save();
   }

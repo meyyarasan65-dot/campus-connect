@@ -38,9 +38,6 @@ export const AnalyticsDashboard = () => {
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center">
             <TrendingUp className="w-8 h-8 mr-3 text-brand-600" /> Platform Analytics
           </h1>
-          <div className="text-sm text-slate-500 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm">
-            Live Overview
-          </div>
         </div>
 
         {/* Top KPI Cards */}

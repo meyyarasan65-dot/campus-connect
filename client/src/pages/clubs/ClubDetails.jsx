@@ -1,14 +1,16 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useParams, Link } from 'react-router-dom';
-import { getClubById, joinClub, leaveClub } from '../../api/clubs.api';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { getClubById, joinClub, leaveClub, deleteClub } from '../../api/clubs.api';
 import { getAnnouncements, createAnnouncement } from '../../api/content.api';
 import { useAuthStore } from '../../store/authStore';
-import { ArrowLeft, Users, ShieldCheck, Mail, LogOut, UserPlus, Megaphone, Clock, Plus, X } from 'lucide-react';
+import { ArrowLeft, Users, ShieldCheck, Mail, LogOut, UserPlus, Megaphone, Clock, Plus, X, Trash2 } from 'lucide-react';
 import { ROLES, PERMISSIONS } from '../../constants/roles';
+import { Can } from '../../components/Can';
 import { useState } from 'react';
 
 export const ClubDetails = () => {
   const { clubId } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const queryClient = useQueryClient();
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
@@ -33,6 +35,17 @@ export const ClubDetails = () => {
   const leaveMutation = useMutation({
     mutationFn: leaveClub,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['club', clubId] }),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteClub(clubId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clubs'] });
+      navigate('/clubs');
+    },
+    onError: (err) => {
+      alert(err.response?.data?.message || 'Failed to delete club.');
+    }
   });
 
   const createAnnouncementMutation = useMutation({
@@ -124,6 +137,20 @@ export const ClubDetails = () => {
                     You are Admin
                   </div>
                 )}
+                <Can permission={[PERMISSIONS.CLUBS_DELETE]}>
+                  <button 
+                    onClick={() => {
+                      if (window.confirm('Are you sure you want to delete this club? This action cannot be undone.')) {
+                        deleteMutation.mutate();
+                      }
+                    }}
+                    disabled={deleteMutation.isPending}
+                    className="flex items-center justify-center px-4 py-2.5 bg-rose-50 text-rose-600 font-medium rounded-xl hover:bg-rose-100 transition-colors disabled:opacity-70 mt-2"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Club
+                  </button>
+                </Can>
               </div>
             </div>
 

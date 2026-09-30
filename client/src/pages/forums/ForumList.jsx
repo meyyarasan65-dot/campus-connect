@@ -1,13 +1,36 @@
-import { useQuery } from '@tanstack/react-query';
-import { getThreads } from '../../api/forums.api';
-import { MessageSquare, Users, TrendingUp, Lock } from 'lucide-react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getThreads, createThread } from '../../api/forums.api';
+import { MessageSquare, Users, TrendingUp, Lock, X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 
 export const ForumList = () => {
+  const queryClient = useQueryClient();
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({ title: '', content: '', category: 'Academics' });
+
+  const createMutation = useMutation({
+    mutationFn: createThread,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['threads'] });
+      setIsModalOpen(false);
+      setFormData({ title: '', content: '', category: 'Academics' });
+    },
+    onError: (err) => {
+      alert(err.response?.data?.error?.message || 'Failed to create thread.');
+    }
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    createMutation.mutate(formData);
+  };
+
   const { data: threads, isLoading } = useQuery({
-    queryKey: ['threads'],
-    queryFn: () => getThreads(),
+    queryKey: ['threads', selectedCategory],
+    queryFn: () => getThreads(selectedCategory),
   });
 
   if (isLoading) {
@@ -25,7 +48,7 @@ export const ForumList = () => {
               <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Community Forums</h1>
               <p className="mt-1 text-slate-600">Discuss, ask, and share with your campus.</p>
             </div>
-            <button className="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-sm">
+            <button onClick={() => setIsModalOpen(true)} className="px-4 py-2 bg-brand-600 text-white text-sm font-medium rounded-lg hover:bg-brand-700 transition-colors shadow-sm">
               New Thread
             </button>
           </div>
@@ -94,15 +117,70 @@ export const ForumList = () => {
               Categories
             </h3>
             <ul className="space-y-2 text-sm font-medium text-slate-600">
-              <li className="p-2 hover:bg-slate-50 rounded-lg cursor-pointer text-brand-600 bg-brand-50">All Discussions</li>
-              <li className="p-2 hover:bg-slate-50 rounded-lg cursor-pointer">Academics</li>
-              <li className="p-2 hover:bg-slate-50 rounded-lg cursor-pointer">Placements</li>
-              <li className="p-2 hover:bg-slate-50 rounded-lg cursor-pointer">Tech Help</li>
+              <li 
+                onClick={() => setSelectedCategory('')}
+                className={`p-2 rounded-lg cursor-pointer ${selectedCategory === '' ? 'text-brand-600 bg-brand-50' : 'hover:bg-slate-50'}`}
+              >
+                All Discussions
+              </li>
+              <li 
+                onClick={() => setSelectedCategory('Academics')}
+                className={`p-2 rounded-lg cursor-pointer ${selectedCategory === 'Academics' ? 'text-brand-600 bg-brand-50' : 'hover:bg-slate-50'}`}
+              >
+                Academics
+              </li>
+              <li 
+                onClick={() => setSelectedCategory('Placements')}
+                className={`p-2 rounded-lg cursor-pointer ${selectedCategory === 'Placements' ? 'text-brand-600 bg-brand-50' : 'hover:bg-slate-50'}`}
+              >
+                Placements
+              </li>
+              <li 
+                onClick={() => setSelectedCategory('Tech Help')}
+                className={`p-2 rounded-lg cursor-pointer ${selectedCategory === 'Tech Help' ? 'text-brand-600 bg-brand-50' : 'hover:bg-slate-50'}`}
+              >
+                Tech Help
+              </li>
             </ul>
           </div>
         </div>
         
       </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-2xl w-full max-w-md p-6 shadow-xl my-8">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Create New Thread</h2>
+              <button onClick={() => setIsModalOpen(false)}><X className="w-5 h-5 text-slate-400 hover:text-slate-600" /></button>
+            </div>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Title (min 5 chars)</label>
+                <input required minLength={5} type="text" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} className="w-full border rounded-lg px-3 py-2" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+                <select required value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})} className="w-full border rounded-lg px-3 py-2">
+                  <option value="" disabled>Select a category</option>
+                  <option value="Academics">Academics</option>
+                  <option value="Placements">Placements</option>
+                  <option value="Tech Help">Tech Help</option>
+                  <option value="General">General</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Content (min 10 chars)</label>
+                <textarea required minLength={10} value={formData.content} onChange={e => setFormData({...formData, content: e.target.value})} className="w-full border rounded-lg px-3 py-2" rows="4"></textarea>
+              </div>
+              <button type="submit" disabled={createMutation.isPending} className="w-full py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 mt-2">
+                {createMutation.isPending ? 'Creating...' : 'Create Thread'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
