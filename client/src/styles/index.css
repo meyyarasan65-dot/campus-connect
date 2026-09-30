@@ -4,6 +4,71 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased font-sans selection:bg-brand-500 selection:text-white;
+    @apply antialiased font-sans selection:bg-brand-500 selection:text-white min-h-screen bg-slate-900 text-slate-100;
   }
+}
+
+/* Force dark theme globally on cards and backgrounds */
+.bg-white {
+  @apply !bg-slate-800 !border-slate-700;
+}
+.bg-slate-50, .bg-slate-100, .bg-slate-200 {
+  @apply !bg-slate-900 !border-slate-800;
+}
+
+/* Force dark theme globally on text */
+.text-slate-900, .text-slate-800 {
+  @apply !text-slate-100;
+}
+.text-slate-700, .text-slate-600 {
+  @apply !text-slate-300;
+}
+.text-slate-500 {
+  @apply !text-slate-400;
+}
+
+/* Fix hover states by allowing hover backgrounds to be slightly lighter dark */
+.hover\:bg-slate-50:hover {
+  @apply !bg-slate-700;
+}
+
+/* Fix specific colored cards like Announcements so they become dark and readable */
+.bg-red-50 {
+  @apply !bg-red-900/40 !border-red-800/50;
+}
+.bg-amber-50 {
+  @apply !bg-amber-900/40 !border-amber-800/50;
+}
+.bg-blue-50 {
+  @apply !bg-blue-900/40 !border-blue-800/50;
+}
+.bg-emerald-50 {
+  @apply !bg-emerald-900/40 !border-emerald-800/50;
+}
+
+/* Ensure the colored text inside them stays readable */
+.text-red-900, .text-red-700, .text-red-600 {
+  @apply !text-red-200;
+}
+.text-amber-900, .text-amber-700, .text-amber-600 {
+  @apply !text-amber-200;
+}
+.text-blue-900, .text-blue-700, .text-blue-600 {
+  @apply !text-blue-200;
+}
+.text-emerald-900, .text-emerald-700, .text-emerald-600 {
+  @apply !text-emerald-200;
+}
+
+/* Input fields */
+input, textarea, select {
+  @apply !bg-slate-900 !text-slate-100 !border-slate-700 placeholder-slate-500 focus:!bg-slate-800;
+}
+
+/* Secondary */
+.bg-secondary {
+  background-color: #02027D !important;
+}
+.text-secondary {
+  color: #02027D !important;
 }

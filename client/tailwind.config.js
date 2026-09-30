@@ -13,6 +13,9 @@ export default {
           500: '#22c55e',
           600: '#16a34a',
           900: '#14532d',
+        },
+        secondary: {
+          DEFAULT: '#02027D',
         }
       }
     },
